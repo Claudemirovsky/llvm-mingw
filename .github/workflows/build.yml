@@ -1,11 +1,5 @@
 name: Builds
 on:
-  push:
-    branches:
-      - '**'
-  pull_request:
-  schedule:
-    - cron: '0 0 * * *'
   workflow_dispatch:
 
 permissions:
@@ -20,7 +14,6 @@ jobs:
   # slightly more, when we know a separate build of the same version but with
   # assertions enabled, has passed some amount of tests.
   prepare:
-    if: (github.event_name != 'schedule') || (github.repository == 'mstorsjo/llvm-mingw')
     runs-on: ubuntu-latest
     outputs:
       LLVM_VERSION: ${{steps.get-versions.outputs.LLVM_VERSION}}
@@ -500,8 +493,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { arch: x86_64,  target_arch: i686    }
-          - { arch: x86_64,  target_arch: x86_64  }
+          - { arch: x86_64, target_arch: i686 }
+          - { arch: x86_64, target_arch: x86_64 }
           - { arch: aarch64, target_arch: aarch64 }
     runs-on: ${{startsWith(matrix.arch, 'a') && 'windows-11-arm' || 'windows-latest'}}
     steps:
@@ -559,7 +552,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { arch: i686, asmflag: }
+          - { arch: i686, asmflag }
           - { arch: x86_64, asmflag: -m64 }
           - { arch: aarch64 }
           - { arch: arm64ec }
@@ -790,7 +783,16 @@ jobs:
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     permissions:
       contents: write
-    needs: [linux, linux-cross-aarch64, macos, linux-cross-windows, test-toolchain, linux-test-cross-build-ffmpeg, test-ffmpeg]
+    needs:
+      [
+        linux,
+        linux-cross-aarch64,
+        macos,
+        linux-cross-windows,
+        test-toolchain,
+        linux-test-cross-build-ffmpeg,
+        test-ffmpeg,
+      ]
     runs-on: ubuntu-latest
     steps:
       - name: Download all artifacts
